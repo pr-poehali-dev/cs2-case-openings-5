@@ -73,7 +73,7 @@ def get_all_data(conn) -> Dict[str, Any]:
         
         settings = {row['key']: row['value'] for row in settings_rows}
         
-        for key in ['banners', 'sections', 'styles']:
+        for key in ['banners', 'sections', 'navItems', 'styles']:
             if key in settings:
                 settings[key] = json.loads(settings[key])
         

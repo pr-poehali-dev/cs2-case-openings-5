@@ -3,18 +3,13 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useStore } from '@/lib/store';
 
-const navItems = [
-  { path: '/', label: 'Главная', icon: 'Home' },
-  { path: '/cases', label: 'Кейсы', icon: 'Package' },
-  { path: '/profile', label: 'Профиль', icon: 'User' },
-  { path: '/inventory', label: 'Инвентарь', icon: 'Backpack' },
-  { path: '/free', label: 'Халява', icon: 'Gift' },
-  { path: '/admin', label: 'Админ', icon: 'Settings' },
-];
-
 export default function Navigation() {
   const location = useLocation();
   const { siteSettings } = useStore();
+  
+  const navItems = (siteSettings.navItems || [])
+    .filter(item => item.isVisible)
+    .sort((a, b) => a.order - b.order);
 
   return (
     <nav className="border-b border-border bg-card/50 backdrop-blur-lg sticky top-0 z-40" style={{ fontFamily: siteSettings.font }}>

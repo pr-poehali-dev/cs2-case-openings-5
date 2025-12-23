@@ -44,6 +44,15 @@ export interface StyleSettings {
   borderRadius: string;
 }
 
+export interface NavItem {
+  id: string;
+  path: string;
+  label: string;
+  icon: string;
+  isVisible: boolean;
+  order: number;
+}
+
 export interface SiteSettings {
   title: string;
   logo: string;
@@ -51,6 +60,7 @@ export interface SiteSettings {
   currencyIcon: string;
   banners: Banner[];
   sections: SiteSection[];
+  navItems: NavItem[];
   styles: StyleSettings;
 }
 
@@ -73,6 +83,9 @@ interface StoreState {
   addSection: (section: SiteSection) => void;
   updateSection: (id: string, updates: Partial<SiteSection>) => void;
   deleteSection: (id: string) => void;
+  addNavItem: (navItem: NavItem) => void;
+  updateNavItem: (id: string, updates: Partial<NavItem>) => void;
+  deleteNavItem: (id: string) => void;
   updateStyles: (styles: Partial<StyleSettings>) => void;
   recordCaseOpening: (caseId: string, itemId: string) => Promise<void>;
   syncToServer: () => Promise<void>;
@@ -149,6 +162,14 @@ const defaultSiteSettings: SiteSettings = {
       isVisible: true,
       order: 2,
     },
+  ],
+  navItems: [
+    { id: '1', path: '/', label: 'Главная', icon: 'Home', isVisible: true, order: 1 },
+    { id: '2', path: '/cases', label: 'Кейсы', icon: 'Package', isVisible: true, order: 2 },
+    { id: '3', path: '/profile', label: 'Профиль', icon: 'User', isVisible: true, order: 3 },
+    { id: '4', path: '/inventory', label: 'Инвентарь', icon: 'Backpack', isVisible: true, order: 4 },
+    { id: '5', path: '/free', label: 'Халява', icon: 'Gift', isVisible: true, order: 5 },
+    { id: '6', path: '/admin', label: 'Админ', icon: 'Settings', isVisible: true, order: 6 },
   ],
   styles: {
     primaryColor: '#ff6b35',
@@ -275,6 +296,7 @@ export const useStore = create<StoreState>()(
               ...settings,
               banners: currentSettings.banners || defaultSiteSettings.banners,
               sections: currentSettings.sections || defaultSiteSettings.sections,
+              navItems: currentSettings.navItems || defaultSiteSettings.navItems,
               styles: currentSettings.styles || defaultSiteSettings.styles,
             },
           };
@@ -358,6 +380,47 @@ export const useStore = create<StoreState>()(
               ...defaultSiteSettings,
               ...currentSettings,
               sections: (currentSettings.sections || []).filter((s) => s.id !== id),
+            },
+          };
+        });
+        get().syncToServer();
+      },
+      addNavItem: (navItem) => {
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              navItems: [...(currentSettings.navItems || []), navItem],
+            },
+          };
+        });
+        get().syncToServer();
+      },
+      updateNavItem: (id, updates) => {
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              navItems: (currentSettings.navItems || []).map((n) =>
+                n.id === id ? { ...n, ...updates } : n
+              ),
+            },
+          };
+        });
+        get().syncToServer();
+      },
+      deleteNavItem: (id) => {
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              navItems: (currentSettings.navItems || []).filter((n) => n.id !== id),
             },
           };
         });

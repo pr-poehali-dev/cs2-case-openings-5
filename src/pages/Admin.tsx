@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import { useStore, Banner, SiteSection } from '@/lib/store';
+import { useStore, Banner, SiteSection, NavItem } from '@/lib/store';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,7 +31,11 @@ export default function Admin() {
     addSection,
     updateSection,
     deleteSection,
-    updateStyles
+    addNavItem,
+    updateNavItem,
+    deleteNavItem,
+    updateStyles,
+    syncToServer
   } = useStore();
 
   const handleLogin = (e: React.FormEvent) => {
@@ -149,6 +153,35 @@ export default function Admin() {
     toast({ title: 'Раздел добавлен', description: 'Новый раздел добавлен на сайт' });
   };
 
+  const handleAddNavItem = () => {
+    const newNavItem: NavItem = {
+      id: String(Date.now()),
+      path: '/new',
+      label: 'Новый пункт',
+      icon: 'Star',
+      isVisible: true,
+      order: siteSettings.navItems.length + 1,
+    };
+    addNavItem(newNavItem);
+    toast({ title: 'Пункт навигации добавлен', description: 'Новый пункт появился в меню' });
+  };
+
+  const handleSyncToServer = async () => {
+    try {
+      await syncToServer();
+      toast({ 
+        title: 'Синхронизация завершена', 
+        description: 'Все изменения сохранены в базу данных для всех пользователей' 
+      });
+    } catch (error) {
+      toast({ 
+        title: 'Ошибка синхронизации', 
+        description: 'Не удалось сохранить изменения', 
+        variant: 'destructive' 
+      });
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -203,20 +236,30 @@ export default function Admin() {
         <h1 className="text-4xl font-bold bg-gradient-to-r from-game-orange to-game-pink bg-clip-text text-transparent">
           Админ-панель
         </h1>
-        <Button 
-          variant="outline"
-          onClick={() => setIsAuthenticated(false)}
-        >
-          <Icon name="LogOut" size={20} className="mr-2" />
-          Выйти
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleSyncToServer}
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+          >
+            <Icon name="RefreshCw" size={20} className="mr-2" />
+            Синхронизировать с базой
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setIsAuthenticated(false)}
+          >
+            <Icon name="LogOut" size={20} className="mr-2" />
+            Выйти
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="cases" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="cases">Кейсы</TabsTrigger>
           <TabsTrigger value="banners">Баннеры</TabsTrigger>
           <TabsTrigger value="sections">Разделы</TabsTrigger>
+          <TabsTrigger value="navigation">Навигация</TabsTrigger>
           <TabsTrigger value="styles">Оформление</TabsTrigger>
           <TabsTrigger value="settings">Настройки</TabsTrigger>
         </TabsList>
@@ -511,6 +554,78 @@ export default function Admin() {
                     onChange={(e) => updateSection(section.id, { content: e.target.value })}
                     className="mt-2"
                     rows={4}
+                  />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="navigation" className="space-y-4">
+          <Button onClick={handleAddNavItem} className="bg-gradient-to-r from-game-orange to-game-pink">
+            <Icon name="Plus" size={20} className="mr-2" />
+            Добавить пункт навигации
+          </Button>
+
+          {siteSettings.navItems && siteSettings.navItems.map((navItem) => (
+            <Card key={navItem.id} className="p-6 bg-card border-2 border-border">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold">{navItem.label}</h3>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <Label>Видимость</Label>
+                    <Switch
+                      checked={navItem.isVisible}
+                      onCheckedChange={(checked) => updateNavItem(navItem.id, { isVisible: checked })}
+                    />
+                  </div>
+                  <Button 
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      deleteNavItem(navItem.id);
+                      toast({ title: 'Пункт удален', description: 'Пункт удален из навигации' });
+                    }}
+                  >
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Название</Label>
+                  <Input
+                    value={navItem.label}
+                    onChange={(e) => updateNavItem(navItem.id, { label: e.target.value })}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label>Путь</Label>
+                  <Input
+                    value={navItem.path}
+                    onChange={(e) => updateNavItem(navItem.id, { path: e.target.value })}
+                    className="mt-2"
+                    placeholder="/path"
+                  />
+                </div>
+                <div>
+                  <Label>Иконка (lucide name)</Label>
+                  <Input
+                    value={navItem.icon}
+                    onChange={(e) => updateNavItem(navItem.id, { icon: e.target.value })}
+                    className="mt-2"
+                    placeholder="Home"
+                  />
+                </div>
+                <div>
+                  <Label>Порядок</Label>
+                  <Input
+                    type="number"
+                    value={navItem.order}
+                    onChange={(e) => updateNavItem(navItem.id, { order: Number(e.target.value) })}
+                    className="mt-2"
                   />
                 </div>
               </div>
