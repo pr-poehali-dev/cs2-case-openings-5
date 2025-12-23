@@ -31,6 +31,8 @@ export interface SiteSection {
   id: string;
   title: string;
   content: string;
+  image?: string;
+  link?: string;
   isVisible: boolean;
   order: number;
 }

@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
+import Icon from '@/components/ui/icon';
 
 export default function Free() {
   const { siteSettings } = useStore();
@@ -84,14 +85,56 @@ export default function Free() {
 
       {freeSections.length > 0 && (
         <div className="space-y-8">
-          {freeSections.map((section) => (
-            <Card key={section.id} className="p-6">
-              <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
-              <div className="prose prose-invert max-w-none">
-                <p className="text-muted-foreground">{section.content}</p>
-              </div>
-            </Card>
-          ))}
+          {freeSections.map((section) => {
+            const CardWrapper = section.link ? 'a' : 'div';
+            const cardProps = section.link ? { 
+              href: section.link, 
+              target: section.link.startsWith('http') ? '_blank' : undefined,
+              rel: section.link.startsWith('http') ? 'noopener noreferrer' : undefined,
+              className: 'block'
+            } : {};
+            
+            return (
+              <CardWrapper key={section.id} {...cardProps}>
+                <Card className={`p-6 ${section.link ? 'cursor-pointer hover:scale-[1.02] transition-transform' : ''}`}>
+                  <div className="flex items-start gap-6">
+                    {section.image && (
+                      <div className="flex-shrink-0 w-24 h-24 border-2 border-border rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                        {section.image.startsWith('data:') ? (
+                          <img 
+                            src={section.image} 
+                            alt={section.title} 
+                            className="w-full h-full object-cover" 
+                          />
+                        ) : (
+                          <span className="text-5xl">{section.image}</span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold mb-3 flex items-center gap-2">
+                        {section.title}
+                        {section.link && (
+                          <Icon name="ExternalLink" size={20} className="text-muted-foreground" />
+                        )}
+                      </h2>
+                      <div className="prose prose-invert max-w-none">
+                        <p className="text-muted-foreground">{section.content}</p>
+                      </div>
+                      {section.link && (
+                        <Button 
+                          className="mt-4 bg-gradient-to-r from-game-orange to-game-pink"
+                          size="sm"
+                        >
+                          Перейти
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </CardWrapper>
+            );
+          })}
         </div>
       )}
     </div>

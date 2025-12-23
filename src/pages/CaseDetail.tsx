@@ -22,20 +22,37 @@ export default function CaseDetail() {
       return;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const refParam = urlParams.get('ref');
-    const openParam = urlParams.get('open');
+    const checkCanOpen = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref');
+      const openParam = urlParams.get('open');
+      
+      // Проверяем глобальную блокировку на этот кейс
+      const globalKey = `opened_case_${id}_locked`;
+      const isGloballyLocked = localStorage.getItem(globalKey) === 'true';
+      
+      if (isGloballyLocked) {
+        setCanOpen(false);
+        return;
+      }
+      
+      // Проверяем, открывал ли пользователь этот кейс с этой реферальной ссылкой
+      const storageKey = refParam ? `opened_ref_${refParam}_case_${id}` : `opened_case_${id}`;
+      const hasOpenedBefore = localStorage.getItem(storageKey) === 'true';
+      
+      // Разрешаем открыть только если есть ref/open параметр И еще не открывали с этим параметром
+      if ((refParam || openParam) && !hasOpenedBefore) {
+        setCanOpen(true);
+      } else {
+        setCanOpen(false);
+      }
+    };
     
-    // Проверяем, открывал ли пользователь этот кейс с этой реферальной ссылкой
-    const storageKey = refParam ? `opened_ref_${refParam}_case_${id}` : `opened_case_${id}`;
-    const hasOpenedBefore = localStorage.getItem(storageKey) === 'true';
+    checkCanOpen();
     
-    // Разрешаем открыть только если есть ref/open параметр И еще не открывали с этим параметром
-    if ((refParam || openParam) && !hasOpenedBefore) {
-      setCanOpen(true);
-    } else {
-      setCanOpen(false);
-    }
+    // Проверяем каждую секунду, не изменилось ли состояние
+    const interval = setInterval(checkCanOpen, 1000);
+    return () => clearInterval(interval);
   }, [caseData, navigate, id]);
 
   if (!caseData) {
@@ -66,6 +83,10 @@ export default function CaseDetail() {
       const refParam = urlParams.get('ref');
       const storageKey = refParam ? `opened_ref_${refParam}_case_${id}` : `opened_case_${id}`;
       localStorage.setItem(storageKey, 'true');
+      
+      // ГЛОБАЛЬНАЯ блокировка - больше нельзя открывать этот кейс НИКОГДА
+      const globalKey = `opened_case_${id}_locked`;
+      localStorage.setItem(globalKey, 'true');
       
       // Блокируем повторное открытие
       setCanOpen(false);

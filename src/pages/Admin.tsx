@@ -560,6 +560,72 @@ export default function Admin() {
                     rows={4}
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Логотип / Изображение</Label>
+                    <div className="mt-2 flex gap-4 items-center">
+                      {section.image && (
+                        <div className="w-24 h-24 border-2 border-border rounded flex items-center justify-center overflow-hidden bg-muted">
+                          {section.image.startsWith('data:') ? (
+                            <img src={section.image} alt="Логотип" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-4xl">{section.image}</span>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-2">
+                        <Button 
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => {
+                              const file = (e.target as HTMLInputElement).files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                  updateSection(section.id, { image: reader.result as string });
+                                  toast({ title: 'Логотип обновлен', description: 'Изображение раздела изменено' });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            };
+                            input.click();
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Icon name="Upload" size={16} className="mr-2" />
+                          {section.image ? 'Изменить' : 'Загрузить'}
+                        </Button>
+                        {section.image && (
+                          <Button 
+                            onClick={() => {
+                              updateSection(section.id, { image: '' });
+                              toast({ title: 'Логотип удален' });
+                            }}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Ссылка (URL)</Label>
+                    <Input
+                      value={section.link || ''}
+                      onChange={(e) => updateSection(section.id, { link: e.target.value })}
+                      className="mt-2"
+                      placeholder="https://example.com или /page"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Если указана, раздел станет кликабельным
+                    </p>
+                  </div>
+                </div>
               </div>
             </Card>
           ))}
