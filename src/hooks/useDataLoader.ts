@@ -6,6 +6,7 @@ export function useDataLoader() {
   const isLoading = useStore((state) => state.isLoading);
 
   useEffect(() => {
+    localStorage.removeItem('cs2-cases-storage');
     loadData();
   }, [loadData]);
 

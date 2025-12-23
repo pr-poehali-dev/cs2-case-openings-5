@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { getAllData, saveCases, saveSettings, recordOpening } from './api';
 
 export interface CaseItem {
@@ -181,9 +180,7 @@ const defaultSiteSettings: SiteSettings = {
   },
 };
 
-export const useStore = create<StoreState>()(
-  persist(
-    (set, get) => ({
+export const useStore = create<StoreState>()((set, get) => ({
       cases: initialCases,
       siteSettings: defaultSiteSettings,
       isLoading: false,
@@ -439,29 +436,4 @@ export const useStore = create<StoreState>()(
         });
         get().syncToServer();
       },
-    }),
-    {
-      name: 'cs2-cases-storage',
-      version: 1,
-      migrate: (persistedState: any) => {
-        if (!persistedState.siteSettings) {
-          return {
-            ...persistedState,
-            siteSettings: defaultSiteSettings,
-          };
-        }
-        
-        return {
-          ...persistedState,
-          siteSettings: {
-            ...defaultSiteSettings,
-            ...persistedState.siteSettings,
-            banners: persistedState.siteSettings.banners || defaultSiteSettings.banners,
-            sections: persistedState.siteSettings.sections || defaultSiteSettings.sections,
-            styles: persistedState.siteSettings.styles || defaultSiteSettings.styles,
-          },
-        };
-      },
-    }
-  )
-);
+}));
