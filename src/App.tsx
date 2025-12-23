@@ -12,6 +12,7 @@ import CaseDetail from "./pages/CaseDetail";
 import Profile from "./pages/Profile";
 import Inventory from "./pages/Inventory";
 import Free from "./pages/Free";
+import History from "./pages/History";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ function AppContent() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/free" element={<Free />} />
+        <Route path="/history" element={<History />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

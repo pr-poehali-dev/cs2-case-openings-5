@@ -12,20 +12,33 @@ export default function CaseDetail() {
   const { cases, siteSettings, recordCaseOpening } = useStore();
   const [isOpening, setIsOpening] = useState(false);
   const [wonItem, setWonItem] = useState<CaseItem | null>(null);
+  const [canOpen, setCanOpen] = useState(false);
 
   const caseData = cases.find((c) => c.id === id);
 
   useEffect(() => {
     if (!caseData) {
       navigate('/cases');
+      return;
     }
-  }, [caseData, navigate]);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasRefParam = urlParams.has('ref') || urlParams.has('open');
+    const hasOpenedBefore = localStorage.getItem(`opened_case_${id}`) === 'true';
+    
+    setCanOpen(hasRefParam || hasOpenedBefore);
+  }, [caseData, navigate, id]);
 
   if (!caseData) {
     return null;
   }
 
   const openCase = async () => {
+    if (!canOpen) {
+      alert('Чтобы открыть кейс, перейдите по специальной ссылке!');
+      return;
+    }
+
     if (!caseData.items || caseData.items.length === 0) {
       alert('В этом кейсе нет предметов!');
       return;
@@ -39,6 +52,7 @@ export default function CaseDetail() {
       setWonItem(randomItem);
       setIsOpening(false);
       
+      localStorage.setItem(`opened_case_${id}`, 'true');
       await recordCaseOpening(caseData.id, randomItem.id);
     }, 3000);
   };
@@ -97,21 +111,42 @@ export default function CaseDetail() {
                   <span className="text-3xl font-bold text-game-orange">{caseData.price}</span>
                   <CurrencyIcon size={24} className="text-game-orange" />
                 </div>
-                <Button
-                  onClick={openCase}
-                  disabled={isOpening || caseData.items.length === 0}
-                  className="w-full bg-gradient-to-r from-game-orange to-game-pink hover:from-game-pink hover:to-game-purple"
-                  size="lg"
-                >
-                  {isOpening ? 'Открытие...' : (
-                    <span className="flex items-center justify-center gap-2">
-                      Открыть за {caseData.price} <CurrencyIcon size={20} />
-                    </span>
-                  )}
-                </Button>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Содержит {caseData.items.length} {caseData.items.length === 1 ? 'предмет' : 'предметов'}
-                </p>
+                {!canOpen ? (
+                  <div>
+                    <Button
+                      disabled
+                      className="w-full bg-gradient-to-r from-gray-500 to-gray-600 cursor-not-allowed"
+                      size="lg"
+                    >
+                      <Icon name="Lock" size={20} className="mr-2" />
+                      Кейс заблокирован
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-4">
+                      Для открытия кейса перейдите по специальной ссылке
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Пример: /cases/{id}?ref=promo или /cases/{id}?open=true
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <Button
+                      onClick={openCase}
+                      disabled={isOpening || caseData.items.length === 0}
+                      className="w-full bg-gradient-to-r from-game-orange to-game-pink hover:from-game-pink hover:to-game-purple"
+                      size="lg"
+                    >
+                      {isOpening ? 'Открытие...' : (
+                        <span className="flex items-center justify-center gap-2">
+                          Открыть за {caseData.price} <CurrencyIcon size={20} />
+                        </span>
+                      )}
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-4">
+                      Содержит {caseData.items.length} {caseData.items.length === 1 ? 'предмет' : 'предметов'}
+                    </p>
+                  </div>
+                )}
               </div>
             </Card>
           </div>

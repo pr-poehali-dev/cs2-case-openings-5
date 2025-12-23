@@ -169,7 +169,8 @@ const defaultSiteSettings: SiteSettings = {
     { id: '3', path: '/profile', label: 'Профиль', icon: 'User', isVisible: true, order: 3 },
     { id: '4', path: '/inventory', label: 'Инвентарь', icon: 'Backpack', isVisible: true, order: 4 },
     { id: '5', path: '/free', label: 'Халява', icon: 'Gift', isVisible: true, order: 5 },
-    { id: '6', path: '/admin', label: 'Админ', icon: 'Settings', isVisible: true, order: 6 },
+    { id: '7', path: '/history', label: 'История', icon: 'History', isVisible: true, order: 6 },
+    { id: '6', path: '/admin', label: 'Админ', icon: 'Settings', isVisible: true, order: 7 },
   ],
   styles: {
     primaryColor: '#ff6b35',
