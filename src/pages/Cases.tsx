@@ -1,7 +1,9 @@
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { Link } from 'react-router-dom';
 
 export default function Cases() {
   const { cases, siteSettings } = useStore();
@@ -19,8 +21,9 @@ export default function Cases() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cases.map((caseItem) => (
-            <Card key={caseItem.id} className="bg-card border-2 border-border overflow-hidden hover:border-primary transition-all">
-              <div className="p-6">
+            <Link key={caseItem.id} to={`/cases/${caseItem.id}`}>
+              <Card className="bg-card border-2 border-border overflow-hidden hover:border-primary transition-all cursor-pointer group hover:scale-105 hover:shadow-xl">
+                <div className="p-6">
                 <div className="text-7xl text-center mb-4">
                   {caseItem.image.startsWith('data:') ? (
                     <img src={caseItem.image} alt={caseItem.name} className="w-28 h-28 mx-auto object-cover rounded-lg" />
@@ -56,9 +59,14 @@ export default function Cases() {
                       </div>
                     ))}
                   </div>
+
+                  <Button className="w-full mt-4 bg-gradient-to-r from-game-orange to-game-pink hover:from-game-pink hover:to-game-purple">
+                    Открыть кейс
+                    <Icon name="ChevronRight" size={20} className="ml-2" />
+                  </Button>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

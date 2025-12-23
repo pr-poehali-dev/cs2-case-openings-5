@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Home from "./pages/Home";
 import Cases from "./pages/Cases";
+import CaseDetail from "./pages/CaseDetail";
 import Profile from "./pages/Profile";
 import Inventory from "./pages/Inventory";
 import Free from "./pages/Free";
@@ -25,6 +26,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/cases" element={<Cases />} />
+          <Route path="/cases/:id" element={<CaseDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/free" element={<Free />} />
