@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { useStore } from '@/lib/store';
 
 const navItems = [
   { path: '/', label: 'Главная', icon: 'Home' },
@@ -13,15 +14,16 @@ const navItems = [
 
 export default function Navigation() {
   const location = useLocation();
+  const { siteSettings } = useStore();
 
   return (
-    <nav className="border-b border-border bg-card/50 backdrop-blur-lg sticky top-0 z-40">
+    <nav className="border-b border-border bg-card/50 backdrop-blur-lg sticky top-0 z-40" style={{ fontFamily: siteSettings.font }}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="text-3xl">🎮</span>
+            <span className="text-3xl">{siteSettings.logo}</span>
             <span className="text-2xl font-bold bg-gradient-to-r from-game-orange via-game-pink to-game-purple bg-clip-text text-transparent">
-              CS2 КЕЙСЫ
+              {siteSettings.title}
             </span>
           </Link>
 
