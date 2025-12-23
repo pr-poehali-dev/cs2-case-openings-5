@@ -24,7 +24,7 @@ export async function getAllData() {
 }
 
 export async function saveCases(cases: any[]) {
-  const response = await fetch(`${API_URL}/cases`, {
+  const response = await fetch(`${API_URL}?action=saveCases`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,12 +39,12 @@ export async function saveCases(cases: any[]) {
 }
 
 export async function saveSettings(settings: any) {
-  const response = await fetch(`${API_URL}/settings`, {
+  const response = await fetch(`${API_URL}?action=saveSettings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.dumps({ settings }),
+    body: JSON.stringify({ settings }),
   });
   
   if (!response.ok) {
@@ -54,7 +54,7 @@ export async function saveSettings(settings: any) {
 }
 
 export async function recordOpening(caseId: string, itemId: string) {
-  const response = await fetch(`${API_URL}/openings`, {
+  const response = await fetch(`${API_URL}?action=recordOpening`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ export async function recordOpening(caseId: string, itemId: string) {
 
 export async function getOpenings(limit: number = 50) {
   const userSession = getUserSession();
-  const response = await fetch(`${API_URL}/openings?userSession=${userSession}&limit=${limit}`);
+  const response = await fetch(`${API_URL}?action=getOpenings&userSession=${userSession}&limit=${limit}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch openings');
@@ -83,7 +83,7 @@ export async function getOpenings(limit: number = 50) {
 }
 
 export async function getAllOpenings(limit: number = 50) {
-  const response = await fetch(`${API_URL}/openings?limit=${limit}`);
+  const response = await fetch(`${API_URL}?action=getOpenings&limit=${limit}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch openings');

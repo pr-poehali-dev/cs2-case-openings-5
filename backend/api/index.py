@@ -21,7 +21,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     GET /api/openings - получить историю открытий
     '''
     method = event.get('httpMethod', 'GET')
-    path = event.get('pathParams', {}).get('proxy', '')
+    query_params = event.get('queryStringParameters', {}) or {}
+    action = query_params.get('action', '')
     
     if method == 'OPTIONS':
         return {
@@ -40,7 +41,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         if method == 'GET':
-            if 'openings' in path:
+            if action == 'getOpenings':
                 return get_openings(conn, event)
             else:
                 return get_all_data(conn)
@@ -48,11 +49,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif method == 'POST':
             body = json.loads(event.get('body', '{}'))
             
-            if 'cases' in path:
+            if action == 'saveCases':
                 return save_cases(conn, body)
-            elif 'settings' in path:
+            elif action == 'saveSettings':
                 return save_settings(conn, body)
-            elif 'openings' in path:
+            elif action == 'recordOpening':
                 return record_opening(conn, body)
         
         return {

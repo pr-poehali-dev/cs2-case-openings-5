@@ -14,7 +14,7 @@
     {
       "name": "Save settings",
       "method": "POST",
-      "path": "/settings",
+      "path": "/?action=saveSettings",
       "body": {
         "settings": {
           "title": "Test Site"

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { getAllData, saveCases, saveSettings, recordOpening } from './api';
 
 export interface CaseItem {
@@ -180,7 +181,9 @@ const defaultSiteSettings: SiteSettings = {
   },
 };
 
-export const useStore = create<StoreState>()((set, get) => ({
+export const useStore = create<StoreState>()(
+  persist(
+    (set, get) => ({
       cases: initialCases,
       siteSettings: defaultSiteSettings,
       isLoading: false,
@@ -189,26 +192,32 @@ export const useStore = create<StoreState>()((set, get) => ({
           set({ isLoading: true });
           const data = await getAllData();
           
-          const loadedCases = data.cases && data.cases.length > 0 ? data.cases : initialCases;
-          const loadedSettings = data.settings && Object.keys(data.settings).length > 0 
-            ? { ...defaultSiteSettings, ...data.settings } 
-            : defaultSiteSettings;
+          const dbIsEmpty = (!data.cases || data.cases.length === 0) && 
+                           (!data.settings || Object.keys(data.settings).length === 0);
           
-          set({
-            cases: loadedCases,
-            siteSettings: loadedSettings,
-            isLoading: false,
-          });
-          
-          if (data.cases && data.cases.length === 0) {
+          if (dbIsEmpty) {
             await saveCases(initialCases);
             await saveSettings(defaultSiteSettings);
+            set({
+              cases: initialCases,
+              siteSettings: defaultSiteSettings,
+              isLoading: false,
+            });
+          } else {
+            const loadedCases = data.cases || get().cases || initialCases;
+            const loadedSettings = data.settings && Object.keys(data.settings).length > 0 
+              ? { ...defaultSiteSettings, ...data.settings } 
+              : get().siteSettings || defaultSiteSettings;
+            
+            set({
+              cases: loadedCases,
+              siteSettings: loadedSettings,
+              isLoading: false,
+            });
           }
         } catch (error) {
           console.error('Failed to load data:', error);
           set({ 
-            cases: initialCases,
-            siteSettings: defaultSiteSettings,
             isLoading: false 
           });
         }
@@ -436,4 +445,9 @@ export const useStore = create<StoreState>()((set, get) => ({
         });
         get().syncToServer();
       },
-}));
+    }),
+    {
+      name: 'cs2-cases-storage',
+    }
+  )
+);
