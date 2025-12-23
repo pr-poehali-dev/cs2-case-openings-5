@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { getAllData, saveCases, saveSettings, recordOpening } from './api';
 
 export interface CaseItem {
   id: string;
@@ -56,6 +57,8 @@ export interface SiteSettings {
 interface StoreState {
   cases: CaseData[];
   siteSettings: SiteSettings;
+  isLoading: boolean;
+  loadData: () => Promise<void>;
   setCases: (cases: CaseData[]) => void;
   addCase: (caseData: CaseData) => void;
   updateCase: (id: string, updates: Partial<CaseData>) => void;
@@ -71,6 +74,8 @@ interface StoreState {
   updateSection: (id: string, updates: Partial<SiteSection>) => void;
   deleteSection: (id: string) => void;
   updateStyles: (styles: Partial<StyleSettings>) => void;
+  recordCaseOpening: (caseId: string, itemId: string) => Promise<void>;
+  syncToServer: () => Promise<void>;
 }
 
 const initialCases: CaseData[] = [
@@ -160,28 +165,67 @@ export const useStore = create<StoreState>()(
     (set, get) => ({
       cases: initialCases,
       siteSettings: defaultSiteSettings,
+      isLoading: false,
+      loadData: async () => {
+        try {
+          set({ isLoading: true });
+          const data = await getAllData();
+          set({
+            cases: data.cases || [],
+            siteSettings: { ...defaultSiteSettings, ...data.settings },
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error('Failed to load data:', error);
+          set({ isLoading: false });
+        }
+      },
+      syncToServer: async () => {
+        try {
+          const state = get();
+          await saveCases(state.cases);
+          await saveSettings(state.siteSettings);
+        } catch (error) {
+          console.error('Failed to sync to server:', error);
+        }
+      },
+      recordCaseOpening: async (caseId: string, itemId: string) => {
+        try {
+          await recordOpening(caseId, itemId);
+        } catch (error) {
+          console.error('Failed to record opening:', error);
+        }
+      },
       setCases: (cases) => set({ cases }),
-      addCase: (caseData) =>
+      addCase: (caseData) => {
         set((state) => ({
           cases: [...state.cases, caseData],
-        })),
-      updateCase: (id, updates) =>
+        }));
+        get().syncToServer();
+      },
+      updateCase: (id, updates) => {
         set((state) => ({
           cases: state.cases.map((c) =>
             c.id === id ? { ...c, ...updates } : c
           ),
-        })),
-      deleteCase: (id) =>
+        }));
+        get().syncToServer();
+      },
+      deleteCase: (id) => {
         set((state) => ({
           cases: state.cases.filter((c) => c.id !== id),
-        })),
-      addItemToCase: (caseId, item) =>
+        }));
+        get().syncToServer();
+      },
+      addItemToCase: (caseId, item) => {
         set((state) => ({
           cases: state.cases.map((c) =>
             c.id === caseId ? { ...c, items: [...c.items, item] } : c
           ),
-        })),
-      updateCaseItem: (caseId, itemId, updates) =>
+        }));
+        get().syncToServer();
+      },
+      updateCaseItem: (caseId, itemId, updates) => {
         set((state) => ({
           cases: state.cases.map((c) =>
             c.id === caseId
@@ -193,16 +237,20 @@ export const useStore = create<StoreState>()(
                 }
               : c
           ),
-        })),
-      deleteCaseItem: (caseId, itemId) =>
+        }));
+        get().syncToServer();
+      },
+      deleteCaseItem: (caseId, itemId) => {
         set((state) => ({
           cases: state.cases.map((c) =>
             c.id === caseId
               ? { ...c, items: c.items.filter((item) => item.id !== itemId) }
               : c
           ),
-        })),
-      setSiteSettings: (settings) =>
+        }));
+        get().syncToServer();
+      },
+      setSiteSettings: (settings) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -215,8 +263,10 @@ export const useStore = create<StoreState>()(
               styles: currentSettings.styles || defaultSiteSettings.styles,
             },
           };
-        }),
-      addBanner: (banner) =>
+        });
+        get().syncToServer();
+      },
+      addBanner: (banner) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -226,8 +276,10 @@ export const useStore = create<StoreState>()(
               banners: [...(currentSettings.banners || []), banner],
             },
           };
-        }),
-      updateBanner: (id, updates) =>
+        });
+        get().syncToServer();
+      },
+      updateBanner: (id, updates) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -239,8 +291,10 @@ export const useStore = create<StoreState>()(
               ),
             },
           };
-        }),
-      deleteBanner: (id) =>
+        });
+        get().syncToServer();
+      },
+      deleteBanner: (id) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -250,8 +304,10 @@ export const useStore = create<StoreState>()(
               banners: (currentSettings.banners || []).filter((b) => b.id !== id),
             },
           };
-        }),
-      addSection: (section) =>
+        });
+        get().syncToServer();
+      },
+      addSection: (section) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -261,8 +317,10 @@ export const useStore = create<StoreState>()(
               sections: [...(currentSettings.sections || []), section],
             },
           };
-        }),
-      updateSection: (id, updates) =>
+        });
+        get().syncToServer();
+      },
+      updateSection: (id, updates) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -274,8 +332,10 @@ export const useStore = create<StoreState>()(
               ),
             },
           };
-        }),
-      deleteSection: (id) =>
+        });
+        get().syncToServer();
+      },
+      deleteSection: (id) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -285,8 +345,10 @@ export const useStore = create<StoreState>()(
               sections: (currentSettings.sections || []).filter((s) => s.id !== id),
             },
           };
-        }),
-      updateStyles: (styles) =>
+        });
+        get().syncToServer();
+      },
+      updateStyles: (styles) => {
         set((state) => {
           const currentSettings = state.siteSettings || defaultSiteSettings;
           return {
@@ -296,7 +358,9 @@ export const useStore = create<StoreState>()(
               styles: { ...(currentSettings.styles || defaultSiteSettings.styles), ...styles },
             },
           };
-        }),
+        });
+        get().syncToServer();
+      },
     }),
     {
       name: 'cs2-cases-storage',

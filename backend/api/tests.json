@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Get all data",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "settings": "object",
+        "cases": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Save settings",
+      "method": "POST",
+      "path": "/settings",
+      "body": {
+        "settings": {
+          "title": "Test Site"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    }
+  ]
+}

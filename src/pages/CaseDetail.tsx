@@ -9,7 +9,7 @@ import CurrencyIcon from '@/components/CurrencyIcon';
 export default function CaseDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { cases, siteSettings } = useStore();
+  const { cases, siteSettings, recordCaseOpening } = useStore();
   const [isOpening, setIsOpening] = useState(false);
   const [wonItem, setWonItem] = useState<CaseItem | null>(null);
 
@@ -25,7 +25,7 @@ export default function CaseDetail() {
     return null;
   }
 
-  const openCase = () => {
+  const openCase = async () => {
     if (!caseData.items || caseData.items.length === 0) {
       alert('В этом кейсе нет предметов!');
       return;
@@ -34,10 +34,12 @@ export default function CaseDetail() {
     setIsOpening(true);
     setWonItem(null);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const randomItem = caseData.items[Math.floor(Math.random() * caseData.items.length)];
       setWonItem(randomItem);
       setIsOpening(false);
+      
+      await recordCaseOpening(caseData.id, randomItem.id);
     }, 3000);
   };
 
