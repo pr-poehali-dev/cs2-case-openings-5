@@ -16,7 +16,11 @@ export default function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="text-3xl">{siteSettings.logo}</span>
+            {siteSettings.logo.startsWith('data:image') ? (
+              <img src={siteSettings.logo} alt="Логотип" className="w-10 h-10 object-contain" />
+            ) : (
+              <span className="text-3xl">{siteSettings.logo}</span>
+            )}
             <span className="text-2xl font-bold bg-gradient-to-r from-game-orange via-game-pink to-game-purple bg-clip-text text-transparent">
               {siteSettings.title}
             </span>

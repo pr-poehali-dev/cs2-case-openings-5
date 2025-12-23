@@ -88,7 +88,7 @@ def get_all_data(conn) -> Dict[str, Any]:
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps({'settings': settings, 'cases': cases}),
+        'body': json.dumps({'settings': settings, 'cases': cases}, default=str),
         'isBase64Encoded': False
     }
 

@@ -77,7 +77,7 @@ export default function Admin() {
     toast({ title: 'Кейс добавлен', description: 'Новый кейс появился на всех страницах' });
   };
 
-  const handleImageUpload = (id: string, type: 'case' | 'item' | 'banner' | 'currency', caseId?: string) => {
+  const handleImageUpload = (id: string, type: 'case' | 'item' | 'banner' | 'currency' | 'logo', caseId?: string) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -98,6 +98,9 @@ export default function Admin() {
           } else if (type === 'currency') {
             setSiteSettings({ currencyIcon: imageUrl });
             toast({ title: 'Иконка валюты обновлена', description: 'Изменения применены на всем сайте' });
+          } else if (type === 'logo') {
+            setSiteSettings({ logo: imageUrl });
+            toast({ title: 'Логотип обновлен', description: 'Изменения видны на всем сайте' });
           }
         };
         reader.readAsDataURL(file);
@@ -780,12 +783,48 @@ export default function Admin() {
                 />
               </div>
               <div>
-                <Label>Логотип сайта (emoji или текст)</Label>
-                <Input
-                  value={siteSettings.logo}
-                  onChange={(e) => setSiteSettings({ logo: e.target.value })}
-                  className="mt-2"
-                />
+                <Label>Логотип сайта</Label>
+                <div className="mt-2 flex gap-4 items-center">
+                  {siteSettings.logo && (
+                    <div className="w-16 h-16 border-2 border-border rounded flex items-center justify-center overflow-hidden bg-muted">
+                      {siteSettings.logo.startsWith('data:image') ? (
+                        <img src={siteSettings.logo} alt="Логотип" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-3xl">{siteSettings.logo}</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      value={siteSettings.logo.startsWith('data:image') ? '' : siteSettings.logo}
+                      onChange={(e) => setSiteSettings({ logo: e.target.value })}
+                      placeholder="Введите emoji или текст"
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => handleImageUpload('logo', 'logo')}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Icon name="Upload" size={16} className="mr-2" />
+                        Загрузить изображение
+                      </Button>
+                      {siteSettings.logo.startsWith('data:image') && (
+                        <Button 
+                          onClick={() => {
+                            setSiteSettings({ logo: '🎮' });
+                            toast({ title: 'Логотип сброшен', description: 'Установлен стандартный emoji' });
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Icon name="RotateCcw" size={16} className="mr-2" />
+                          Сбросить
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
               <div>
                 <Label>Шрифт сайта</Label>
