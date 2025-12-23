@@ -44,6 +44,29 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background" style={{ fontFamily: siteSettings.font }}>
       <div className="container mx-auto px-4 py-8">
+        {siteSettings.banners.filter(b => b.isActive).map((banner) => (
+          <Card key={banner.id} className="mb-8 overflow-hidden border-2 border-primary">
+            <div className="relative">
+              {banner.image && (
+                <div className="w-full h-48 overflow-hidden">
+                  <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="p-6">
+                <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-game-orange to-game-pink bg-clip-text text-transparent">
+                  {banner.title}
+                </h2>
+                <p className="text-lg text-muted-foreground">{banner.description}</p>
+                {banner.link && (
+                  <Button className="mt-4 bg-gradient-to-r from-game-orange to-game-pink" asChild>
+                    <a href={banner.link} target="_blank" rel="noopener noreferrer">Подробнее</a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+        ))}
+
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-game-orange via-game-pink to-game-purple bg-clip-text text-transparent animate-float">
             {siteSettings.title}
@@ -51,13 +74,26 @@ export default function Home() {
           <p className="text-xl text-muted-foreground">Открывай кейсы и выигрывай легендарные скины!</p>
         </div>
 
-        {cases.length === 0 ? (
-          <Card className="p-12 text-center">
-            <p className="text-xl text-muted-foreground">Пока нет доступных кейсов. Добавьте их в админ-панели!</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cases.map((caseItem) => (
+        {siteSettings.sections.filter(s => s.isVisible).sort((a, b) => a.order - b.order).map((section) => (
+          <div key={section.id} className="mb-8">
+            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-game-purple to-game-pink bg-clip-text text-transparent">
+              {section.title}
+            </h2>
+            <p className="text-lg text-muted-foreground mb-6">{section.content}</p>
+          </div>
+        ))}
+
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-game-orange to-game-pink bg-clip-text text-transparent">
+            Доступные кейсы
+          </h2>
+          {cases.length === 0 ? (
+            <Card className="p-12 text-center">
+              <p className="text-xl text-muted-foreground">Пока нет доступных кейсов. Добавьте их в админ-панели!</p>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {cases.map((caseItem) => (
             <Card 
               key={caseItem.id}
               className="bg-card border-2 border-border hover:border-primary transition-all cursor-pointer group hover:animate-glow overflow-hidden"
@@ -81,9 +117,10 @@ export default function Home() {
                 </Button>
               </div>
             </Card>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedCase && (

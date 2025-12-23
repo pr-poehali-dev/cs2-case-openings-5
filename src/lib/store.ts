@@ -17,10 +17,39 @@ export interface CaseData {
   items: CaseItem[];
 }
 
+export interface Banner {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  link?: string;
+  isActive: boolean;
+}
+
+export interface SiteSection {
+  id: string;
+  title: string;
+  content: string;
+  isVisible: boolean;
+  order: number;
+}
+
+export interface StyleSettings {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  cardColor: string;
+  borderRadius: string;
+}
+
 export interface SiteSettings {
   title: string;
   logo: string;
   font: string;
+  banners: Banner[];
+  sections: SiteSection[];
+  styles: StyleSettings;
 }
 
 interface StoreState {
@@ -34,6 +63,13 @@ interface StoreState {
   updateCaseItem: (caseId: string, itemId: string, updates: Partial<CaseItem>) => void;
   deleteCaseItem: (caseId: string, itemId: string) => void;
   setSiteSettings: (settings: Partial<SiteSettings>) => void;
+  addBanner: (banner: Banner) => void;
+  updateBanner: (id: string, updates: Partial<Banner>) => void;
+  deleteBanner: (id: string) => void;
+  addSection: (section: SiteSection) => void;
+  updateSection: (id: string, updates: Partial<SiteSection>) => void;
+  deleteSection: (id: string) => void;
+  updateStyles: (styles: Partial<StyleSettings>) => void;
 }
 
 const initialCases: CaseData[] = [
@@ -86,6 +122,39 @@ export const useStore = create<StoreState>()(
         title: 'CS2 КЕЙСЫ',
         logo: '🎮',
         font: 'Rubik',
+        banners: [
+          {
+            id: '1',
+            title: 'Добро пожаловать!',
+            description: 'Открывай кейсы и получай легендарные скины CS2',
+            image: '',
+            isActive: true,
+          },
+        ],
+        sections: [
+          {
+            id: '1',
+            title: 'Топ кейсы',
+            content: 'Самые популярные кейсы с лучшими скинами',
+            isVisible: true,
+            order: 1,
+          },
+          {
+            id: '2',
+            title: 'Новинки',
+            content: 'Свежие кейсы с новыми скинами',
+            isVisible: true,
+            order: 2,
+          },
+        ],
+        styles: {
+          primaryColor: '#ff6b35',
+          secondaryColor: '#f72585',
+          accentColor: '#7209b7',
+          backgroundColor: '#0a0a0a',
+          cardColor: '#1a1a1a',
+          borderRadius: '12px',
+        },
       },
       setCases: (cases) => set({ cases }),
       addCase: (caseData) =>
@@ -132,6 +201,59 @@ export const useStore = create<StoreState>()(
       setSiteSettings: (settings) =>
         set((state) => ({
           siteSettings: { ...state.siteSettings, ...settings },
+        })),
+      addBanner: (banner) =>
+        set((state) => ({
+          siteSettings: {
+            ...state.siteSettings,
+            banners: [...state.siteSettings.banners, banner],
+          },
+        })),
+      updateBanner: (id, updates) =>
+        set((state) => ({
+          siteSettings: {
+            ...state.siteSettings,
+            banners: state.siteSettings.banners.map((b) =>
+              b.id === id ? { ...b, ...updates } : b
+            ),
+          },
+        })),
+      deleteBanner: (id) =>
+        set((state) => ({
+          siteSettings: {
+            ...state.siteSettings,
+            banners: state.siteSettings.banners.filter((b) => b.id !== id),
+          },
+        })),
+      addSection: (section) =>
+        set((state) => ({
+          siteSettings: {
+            ...state.siteSettings,
+            sections: [...state.siteSettings.sections, section],
+          },
+        })),
+      updateSection: (id, updates) =>
+        set((state) => ({
+          siteSettings: {
+            ...state.siteSettings,
+            sections: state.siteSettings.sections.map((s) =>
+              s.id === id ? { ...s, ...updates } : s
+            ),
+          },
+        })),
+      deleteSection: (id) =>
+        set((state) => ({
+          siteSettings: {
+            ...state.siteSettings,
+            sections: state.siteSettings.sections.filter((s) => s.id !== id),
+          },
+        })),
+      updateStyles: (styles) =>
+        set((state) => ({
+          siteSettings: {
+            ...state.siteSettings,
+            styles: { ...state.siteSettings.styles, ...styles },
+          },
         })),
     }),
     {

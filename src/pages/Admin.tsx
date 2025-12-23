@@ -4,17 +4,35 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import { useStore } from '@/lib/store';
+import { useStore, Banner, SiteSection } from '@/lib/store';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const { toast } = useToast();
   
-  const { cases, siteSettings, updateCase, deleteCase, addCase: storeAddCase, 
-          addItemToCase, updateCaseItem, deleteCaseItem, setSiteSettings } = useStore();
+  const { 
+    cases, 
+    siteSettings, 
+    updateCase, 
+    deleteCase, 
+    addCase: storeAddCase, 
+    addItemToCase, 
+    updateCaseItem, 
+    deleteCaseItem, 
+    setSiteSettings,
+    addBanner,
+    updateBanner,
+    deleteBanner,
+    addSection,
+    updateSection,
+    deleteSection,
+    updateStyles
+  } = useStore();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +73,7 @@ export default function Admin() {
     toast({ title: 'Кейс добавлен', description: 'Новый кейс появился на всех страницах' });
   };
 
-  const handleImageUpload = (id: string, type: 'case' | 'item', caseId?: string) => {
+  const handleImageUpload = (id: string, type: 'case' | 'item' | 'banner', caseId?: string) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -67,9 +85,12 @@ export default function Admin() {
           const imageUrl = reader.result as string;
           if (type === 'case') {
             handleUpdateCase(id, 'image', imageUrl);
-          } else if (caseId) {
+          } else if (type === 'item' && caseId) {
             updateCaseItem(caseId, id, { image: imageUrl });
             toast({ title: 'Изображение скина обновлено', description: 'Изменения видны везде' });
+          } else if (type === 'banner') {
+            updateBanner(id, { image: imageUrl });
+            toast({ title: 'Изображение баннера обновлено', description: 'Баннер обновлен на сайте' });
           }
         };
         reader.readAsDataURL(file);
@@ -98,6 +119,31 @@ export default function Admin() {
   const handleDeleteItem = (caseId: string, itemId: string) => {
     deleteCaseItem(caseId, itemId);
     toast({ title: 'Скин удален', description: 'Скин удален из кейса' });
+  };
+
+  const handleAddBanner = () => {
+    const newBanner: Banner = {
+      id: String(Date.now()),
+      title: 'Новый баннер',
+      description: 'Описание баннера',
+      image: '',
+      link: '',
+      isActive: true,
+    };
+    addBanner(newBanner);
+    toast({ title: 'Баннер добавлен', description: 'Новый баннер появился на сайте' });
+  };
+
+  const handleAddSection = () => {
+    const newSection: SiteSection = {
+      id: String(Date.now()),
+      title: 'Новый раздел',
+      content: 'Содержание раздела',
+      isVisible: true,
+      order: siteSettings.sections.length + 1,
+    };
+    addSection(newSection);
+    toast({ title: 'Раздел добавлен', description: 'Новый раздел добавлен на сайт' });
   };
 
   if (!isAuthenticated) {
@@ -164,9 +210,12 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="cases" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="cases">Кейсы и скины</TabsTrigger>
-          <TabsTrigger value="settings">Настройки сайта</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="cases">Кейсы</TabsTrigger>
+          <TabsTrigger value="banners">Баннеры</TabsTrigger>
+          <TabsTrigger value="sections">Разделы</TabsTrigger>
+          <TabsTrigger value="styles">Оформление</TabsTrigger>
+          <TabsTrigger value="settings">Настройки</TabsTrigger>
         </TabsList>
 
         <TabsContent value="cases" className="space-y-4">
@@ -319,9 +368,290 @@ export default function Admin() {
           ))}
         </TabsContent>
 
+        <TabsContent value="banners" className="space-y-4">
+          <Button onClick={handleAddBanner} className="bg-gradient-to-r from-game-orange to-game-pink">
+            <Icon name="Plus" size={20} className="mr-2" />
+            Добавить баннер
+          </Button>
+
+          {siteSettings.banners.map((banner) => (
+            <Card key={banner.id} className="p-6 bg-card border-2 border-border">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-bold">Баннер: {banner.title}</h3>
+                <div className="flex gap-2 items-center">
+                  <div className="flex items-center gap-2">
+                    <Label>Активен</Label>
+                    <Switch
+                      checked={banner.isActive}
+                      onCheckedChange={(checked) => updateBanner(banner.id, { isActive: checked })}
+                    />
+                  </div>
+                  <Button 
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      deleteBanner(banner.id);
+                      toast({ title: 'Баннер удален', description: 'Баннер удален с сайта' });
+                    }}
+                  >
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>Заголовок</Label>
+                  <Input
+                    value={banner.title}
+                    onChange={(e) => updateBanner(banner.id, { title: e.target.value })}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label>Описание</Label>
+                  <Textarea
+                    value={banner.description}
+                    onChange={(e) => updateBanner(banner.id, { description: e.target.value })}
+                    className="mt-2"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Ссылка (необязательно)</Label>
+                  <Input
+                    value={banner.link || ''}
+                    onChange={(e) => updateBanner(banner.id, { link: e.target.value })}
+                    className="mt-2"
+                    placeholder="https://..."
+                  />
+                </div>
+                <div>
+                  <Label>Изображение баннера</Label>
+                  <div className="mt-2 flex gap-4">
+                    {banner.image && (
+                      <div className="w-48 h-32 border-2 border-border rounded-lg overflow-hidden">
+                        <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <Button 
+                      onClick={() => handleImageUpload(banner.id, 'banner')}
+                      variant="outline"
+                    >
+                      <Icon name="Upload" size={16} className="mr-2" />
+                      {banner.image ? 'Изменить изображение' : 'Загрузить изображение'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="sections" className="space-y-4">
+          <Button onClick={handleAddSection} className="bg-gradient-to-r from-game-orange to-game-pink">
+            <Icon name="Plus" size={20} className="mr-2" />
+            Добавить раздел
+          </Button>
+
+          {siteSettings.sections
+            .sort((a, b) => a.order - b.order)
+            .map((section) => (
+            <Card key={section.id} className="p-6 bg-card border-2 border-border">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-bold">Раздел: {section.title}</h3>
+                <div className="flex gap-2 items-center">
+                  <div className="flex items-center gap-2">
+                    <Label>Показывать</Label>
+                    <Switch
+                      checked={section.isVisible}
+                      onCheckedChange={(checked) => updateSection(section.id, { isVisible: checked })}
+                    />
+                  </div>
+                  <Button 
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      deleteSection(section.id);
+                      toast({ title: 'Раздел удален', description: 'Раздел удален с сайта' });
+                    }}
+                  >
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Заголовок раздела</Label>
+                    <Input
+                      value={section.title}
+                      onChange={(e) => updateSection(section.id, { title: e.target.value })}
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label>Порядок отображения</Label>
+                    <Input
+                      type="number"
+                      value={section.order}
+                      onChange={(e) => updateSection(section.id, { order: Number(e.target.value) })}
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Содержание раздела</Label>
+                  <Textarea
+                    value={section.content}
+                    onChange={(e) => updateSection(section.id, { content: e.target.value })}
+                    className="mt-2"
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="styles" className="space-y-4">
+          <Card className="p-6 bg-card border-2 border-border">
+            <h3 className="text-xl font-bold mb-6">Настройки оформления сайта</h3>
+            
+            <div className="space-y-6">
+              <div>
+                <Label className="text-lg font-semibold">Цветовая схема</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <Label>Основной цвет</Label>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        type="color"
+                        value={siteSettings.styles.primaryColor}
+                        onChange={(e) => updateStyles({ primaryColor: e.target.value })}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={siteSettings.styles.primaryColor}
+                        onChange={(e) => updateStyles({ primaryColor: e.target.value })}
+                        placeholder="#ff6b35"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Вторичный цвет</Label>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        type="color"
+                        value={siteSettings.styles.secondaryColor}
+                        onChange={(e) => updateStyles({ secondaryColor: e.target.value })}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={siteSettings.styles.secondaryColor}
+                        onChange={(e) => updateStyles({ secondaryColor: e.target.value })}
+                        placeholder="#f72585"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Акцентный цвет</Label>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        type="color"
+                        value={siteSettings.styles.accentColor}
+                        onChange={(e) => updateStyles({ accentColor: e.target.value })}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={siteSettings.styles.accentColor}
+                        onChange={(e) => updateStyles({ accentColor: e.target.value })}
+                        placeholder="#7209b7"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-lg font-semibold">Цвета фона</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label>Цвет фона</Label>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        type="color"
+                        value={siteSettings.styles.backgroundColor}
+                        onChange={(e) => updateStyles({ backgroundColor: e.target.value })}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={siteSettings.styles.backgroundColor}
+                        onChange={(e) => updateStyles({ backgroundColor: e.target.value })}
+                        placeholder="#0a0a0a"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Цвет карточек</Label>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        type="color"
+                        value={siteSettings.styles.cardColor}
+                        onChange={(e) => updateStyles({ cardColor: e.target.value })}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={siteSettings.styles.cardColor}
+                        onChange={(e) => updateStyles({ cardColor: e.target.value })}
+                        placeholder="#1a1a1a"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-lg font-semibold">Стиль элементов</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label>Радиус скругления углов</Label>
+                    <Input
+                      value={siteSettings.styles.borderRadius}
+                      onChange={(e) => updateStyles({ borderRadius: e.target.value })}
+                      className="mt-2"
+                      placeholder="12px"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border">
+                <Button 
+                  onClick={() => {
+                    updateStyles({
+                      primaryColor: '#ff6b35',
+                      secondaryColor: '#f72585',
+                      accentColor: '#7209b7',
+                      backgroundColor: '#0a0a0a',
+                      cardColor: '#1a1a1a',
+                      borderRadius: '12px',
+                    });
+                    toast({ title: 'Стили сброшены', description: 'Применены стандартные настройки оформления' });
+                  }}
+                  variant="outline"
+                >
+                  Сбросить до стандартных значений
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="settings" className="space-y-4">
           <Card className="p-6 bg-card border-2 border-border">
-            <h3 className="text-xl font-bold mb-4">Настройки сайта</h3>
+            <h3 className="text-xl font-bold mb-4">Общие настройки сайта</h3>
             <div className="space-y-4">
               <div>
                 <Label>Название сайта</Label>
@@ -344,31 +674,15 @@ export default function Admin() {
                 <select
                   value={siteSettings.font}
                   onChange={(e) => setSiteSettings({ font: e.target.value })}
-                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                  className="mt-2 w-full px-3 py-2 rounded-md border border-input bg-background"
                 >
-                  <option value="Rubik">Rubik (по умолчанию)</option>
-                  <option value="Roboto">Roboto</option>
+                  <option value="Rubik">Rubik</option>
+                  <option value="Inter">Inter</option>
                   <option value="Montserrat">Montserrat</option>
-                  <option value="Oswald">Oswald</option>
-                  <option value="Open Sans">Open Sans</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Poppins">Poppins</option>
                 </select>
               </div>
-              <Button 
-                className="bg-gradient-to-r from-game-orange to-game-pink"
-                onClick={() => toast({ title: 'Настройки сохранены', description: 'Изменения применены на всех страницах' })}
-              >
-                Сохранить изменения
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-card border-2 border-border">
-            <h3 className="text-xl font-bold mb-4">Предпросмотр</h3>
-            <div className="text-center p-8 bg-background rounded-lg" style={{ fontFamily: siteSettings.font }}>
-              <div className="text-6xl mb-4">{siteSettings.logo}</div>
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-game-orange via-game-pink to-game-purple bg-clip-text text-transparent">
-                {siteSettings.title}
-              </h2>
             </div>
           </Card>
         </TabsContent>
