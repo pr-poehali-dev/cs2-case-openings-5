@@ -90,3 +90,12 @@ export async function getAllOpenings(limit: number = 50) {
   }
   return response.json();
 }
+
+export async function getCaseItems(caseId: string) {
+  const response = await fetch(`${API_URL}?action=getCaseItems&caseId=${caseId}`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch case items');
+  }
+  return response.json();
+}

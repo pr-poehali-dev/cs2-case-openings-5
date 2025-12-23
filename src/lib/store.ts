@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { getAllData, saveCases, saveSettings, recordOpening } from './api';
+import { getAllData, saveCases, saveSettings, recordOpening, getCaseItems } from './api';
 
 export interface CaseItem {
   id: string;
@@ -71,6 +71,7 @@ interface StoreState {
   siteSettings: SiteSettings;
   isLoading: boolean;
   loadData: () => Promise<void>;
+  loadCaseItems: (caseId: string) => Promise<void>;
   setCases: (cases: CaseData[]) => void;
   addCase: (caseData: CaseData) => void;
   updateCase: (id: string, updates: Partial<CaseData>) => void;
@@ -239,6 +240,18 @@ export const useStore = create<StoreState>()(
           await recordOpening(caseId, itemId);
         } catch (error) {
           console.error('Failed to record opening:', error);
+        }
+      },
+      loadCaseItems: async (caseId: string) => {
+        try {
+          const items = await getCaseItems(caseId);
+          set((state) => ({
+            cases: state.cases.map((c) =>
+              c.id === caseId ? { ...c, items } : c
+            ),
+          }));
+        } catch (error) {
+          console.error('Failed to load case items:', error);
         }
       },
       setCases: (cases) => set({ cases }),

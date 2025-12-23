@@ -9,12 +9,19 @@ import CurrencyIcon from '@/components/CurrencyIcon';
 export default function CaseDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { cases, siteSettings, recordCaseOpening } = useStore();
+  const { cases, siteSettings, recordCaseOpening, loadCaseItems } = useStore();
   const [isOpening, setIsOpening] = useState(false);
   const [wonItem, setWonItem] = useState<CaseItem | null>(null);
   const [canOpen, setCanOpen] = useState(false);
 
   const caseData = cases.find((c) => c.id === id);
+
+  // Загружаем items если они пустые
+  useEffect(() => {
+    if (caseData && caseData.items.length === 0) {
+      loadCaseItems(caseData.id);
+    }
+  }, [caseData, loadCaseItems]);
 
   useEffect(() => {
     if (!caseData) {

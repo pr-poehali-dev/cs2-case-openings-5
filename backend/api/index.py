@@ -11,6 +11,12 @@ def get_db_connection():
         cursor_factory=RealDictCursor
     )
 
+def escape_sql_string(value):
+    '''Экранирует строку для Simple Query Protocol'''
+    if value is None:
+        return 'NULL'
+    return "'" + str(value).replace("'", "''") + "'"
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     API для работы с кейсами, настройками сайта и историей открытий
@@ -43,6 +49,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'GET':
             if action == 'getOpenings':
                 return get_openings(conn, event)
+            elif action == 'getCaseItems':
+                return get_case_items(conn, query_params)
             else:
                 return get_all_data(conn)
         
@@ -67,7 +75,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn.close()
 
 def get_all_data(conn) -> Dict[str, Any]:
-    '''Получить все настройки и кейсы'''
+    '''Получить все настройки и кейсы (без items для уменьшения размера)'''
     with conn.cursor() as cur:
         cur.execute('SELECT key, value FROM site_settings')
         settings_rows = cur.fetchall()
@@ -78,12 +86,13 @@ def get_all_data(conn) -> Dict[str, Any]:
             if key in settings:
                 settings[key] = json.loads(settings[key])
         
-        cur.execute('SELECT * FROM cases ORDER BY created_at DESC')
+        # Загружаем только базовую информацию о кейсах
+        cur.execute('SELECT id, name, image, price, created_at, updated_at FROM cases ORDER BY created_at DESC')
         cases = cur.fetchall()
         
+        # Добавляем пустой массив items (будут загружаться отдельно)
         for case in cases:
-            cur.execute('SELECT * FROM case_items WHERE case_id = %s', (case['id'],))
-            case['items'] = cur.fetchall()
+            case['items'] = []
     
     return {
         'statusCode': 200,
@@ -98,30 +107,41 @@ def save_cases(conn, body: Dict[str, Any]) -> Dict[str, Any]:
     
     with conn.cursor() as cur:
         for case in cases:
-            cur.execute('''
+            case_id = escape_sql_string(case['id'])
+            name = escape_sql_string(case['name'])
+            image = escape_sql_string(case['image'])
+            price = str(case['price'])
+            
+            cur.execute(f'''
                 INSERT INTO cases (id, name, image, price, updated_at)
-                VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
+                VALUES ({case_id}, {name}, {image}, {price}, CURRENT_TIMESTAMP)
                 ON CONFLICT (id) DO UPDATE SET
                     name = EXCLUDED.name,
                     image = EXCLUDED.image,
                     price = EXCLUDED.price,
                     updated_at = CURRENT_TIMESTAMP
-            ''', (case['id'], case['name'], case['image'], case['price']))
+            ''')
             
-            cur.execute('SELECT id FROM case_items WHERE case_id = %s', (case['id'],))
+            cur.execute(f'SELECT id FROM case_items WHERE case_id = {case_id}')
             existing_items = {row['id'] for row in cur.fetchall()}
             current_items = {item['id'] for item in case.get('items', [])}
             
             for item in case.get('items', []):
-                cur.execute('''
+                item_id = escape_sql_string(item['id'])
+                item_name = escape_sql_string(item['name'])
+                item_image = escape_sql_string(item['image'])
+                item_price = str(item['price'])
+                rarity = escape_sql_string(item['rarity'])
+                
+                cur.execute(f'''
                     INSERT INTO case_items (id, case_id, name, image, price, rarity)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    VALUES ({item_id}, {case_id}, {item_name}, {item_image}, {item_price}, {rarity})
                     ON CONFLICT (id) DO UPDATE SET
                         name = EXCLUDED.name,
                         image = EXCLUDED.image,
                         price = EXCLUDED.price,
                         rarity = EXCLUDED.rarity
-                ''', (item['id'], case['id'], item['name'], item['image'], item['price'], item['rarity']))
+                ''')
     
     conn.commit()
     
@@ -141,13 +161,16 @@ def save_settings(conn, body: Dict[str, Any]) -> Dict[str, Any]:
             if isinstance(value, (dict, list)):
                 value = json.dumps(value)
             
-            cur.execute('''
+            key_escaped = escape_sql_string(key)
+            value_escaped = escape_sql_string(value)
+            
+            cur.execute(f'''
                 INSERT INTO site_settings (key, value, updated_at)
-                VALUES (%s, %s, CURRENT_TIMESTAMP)
+                VALUES ({key_escaped}, {value_escaped}, CURRENT_TIMESTAMP)
                 ON CONFLICT (key) DO UPDATE SET
                     value = EXCLUDED.value,
                     updated_at = CURRENT_TIMESTAMP
-            ''', (key, value))
+            ''')
     
     conn.commit()
     
@@ -160,15 +183,15 @@ def save_settings(conn, body: Dict[str, Any]) -> Dict[str, Any]:
 
 def record_opening(conn, body: Dict[str, Any]) -> Dict[str, Any]:
     '''Записать открытие кейса'''
-    case_id = body.get('caseId')
-    item_id = body.get('itemId')
-    user_session = body.get('userSession', 'anonymous')
+    case_id = escape_sql_string(body.get('caseId'))
+    item_id = escape_sql_string(body.get('itemId'))
+    user_session = escape_sql_string(body.get('userSession', 'anonymous'))
     
     with conn.cursor() as cur:
-        cur.execute('''
+        cur.execute(f'''
             INSERT INTO case_openings (case_id, item_id, user_session)
-            VALUES (%s, %s, %s)
-        ''', (case_id, item_id, user_session))
+            VALUES ({case_id}, {item_id}, {user_session})
+        ''')
     
     conn.commit()
     
@@ -179,32 +202,56 @@ def record_opening(conn, body: Dict[str, Any]) -> Dict[str, Any]:
         'isBase64Encoded': False
     }
 
+def get_case_items(conn, params: Dict[str, Any]) -> Dict[str, Any]:
+    '''Получить items конкретного кейса'''
+    case_id = params.get('caseId')
+    if not case_id:
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'caseId required'}),
+            'isBase64Encoded': False
+        }
+    
+    with conn.cursor() as cur:
+        case_id_escaped = escape_sql_string(case_id)
+        cur.execute(f'SELECT * FROM case_items WHERE case_id = {case_id_escaped}')
+        items = cur.fetchall()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps(items, default=str),
+        'isBase64Encoded': False
+    }
+
 def get_openings(conn, event: Dict[str, Any]) -> Dict[str, Any]:
     '''Получить историю открытий'''
-    params = event.get('queryStringParameters', {})
+    params = event.get('queryStringParameters', {}) or {}
     limit = int(params.get('limit', 50))
     user_session = params.get('userSession')
     
     with conn.cursor() as cur:
         if user_session:
-            cur.execute('''
+            user_session_escaped = escape_sql_string(user_session)
+            cur.execute(f'''
                 SELECT co.*, c.name as case_name, ci.name as item_name, ci.image, ci.price, ci.rarity
                 FROM case_openings co
                 JOIN cases c ON co.case_id = c.id
                 JOIN case_items ci ON co.item_id = ci.id
-                WHERE co.user_session = %s
+                WHERE co.user_session = {user_session_escaped}
                 ORDER BY co.opened_at DESC
-                LIMIT %s
-            ''', (user_session, limit))
+                LIMIT {limit}
+            ''')
         else:
-            cur.execute('''
+            cur.execute(f'''
                 SELECT co.*, c.name as case_name, ci.name as item_name, ci.image, ci.price, ci.rarity
                 FROM case_openings co
                 JOIN cases c ON co.case_id = c.id
                 JOIN case_items ci ON co.item_id = ci.id
                 ORDER BY co.opened_at DESC
-                LIMIT %s
-            ''', (limit,))
+                LIMIT {limit}
+            ''')
         
         openings = cur.fetchall()
     
