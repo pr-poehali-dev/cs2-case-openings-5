@@ -3,7 +3,10 @@ import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 
 export default function Free() {
-  const { banners, sections } = useStore();
+  const { siteSettings } = useStore();
+  
+  const banners = siteSettings.banners || [];
+  const sections = siteSettings.sections || [];
   
   const freeBanners = banners.filter(b => b.isVisible && b.link === '/free');
   const freeSections = sections.filter(s => s.isVisible);
