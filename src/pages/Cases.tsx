@@ -4,6 +4,7 @@ import { useStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Link } from 'react-router-dom';
+import CurrencyIcon from '@/components/CurrencyIcon';
 
 export default function Cases() {
   const { cases, siteSettings } = useStore();
@@ -33,8 +34,8 @@ export default function Cases() {
                   </div>
                   <h3 className="text-2xl font-bold text-center mb-3">{caseItem.name}</h3>
                   <div className="flex items-center justify-center gap-2 mb-4">
-                    <Icon name="Coins" size={20} className="text-game-orange" />
-                    <span className="text-xl font-semibold text-game-orange">{caseItem.price} ₽</span>
+                    <span className="text-xl font-semibold text-game-orange">{caseItem.price}</span>
+                    <CurrencyIcon size={24} className="text-game-orange" />
                   </div>
                   
                   <div className="border-t border-border pt-4 mt-4">

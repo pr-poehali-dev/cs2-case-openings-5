@@ -1,8 +1,8 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Icon from '@/components/ui/icon';
 import { useStore } from '@/lib/store';
 import { Link } from 'react-router-dom';
+import CurrencyIcon from '@/components/CurrencyIcon';
 
 export default function Home() {
   const { cases, siteSettings } = useStore();
@@ -74,8 +74,8 @@ export default function Home() {
                       </div>
                       <h3 className="text-2xl font-bold text-center mb-2">{caseItem.name}</h3>
                       <div className="flex items-center justify-center gap-2 mb-4">
-                        <Icon name="Coins" size={20} className="text-game-orange" />
-                        <span className="text-xl font-semibold text-game-orange">{caseItem.price} ₽</span>
+                        <span className="text-xl font-semibold text-game-orange">{caseItem.price}</span>
+                        <CurrencyIcon size={24} className="text-game-orange" />
                       </div>
                       <Button className="w-full bg-gradient-to-r from-game-orange to-game-pink hover:from-game-pink hover:to-game-purple">
                         Открыть кейс

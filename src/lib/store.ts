@@ -47,6 +47,7 @@ export interface SiteSettings {
   title: string;
   logo: string;
   font: string;
+  currencyIcon: string;
   banners: Banner[];
   sections: SiteSection[];
   styles: StyleSettings;
@@ -118,6 +119,7 @@ const defaultSiteSettings: SiteSettings = {
   title: 'CS2 КЕЙСЫ',
   logo: '🎮',
   font: 'Rubik',
+  currencyIcon: '',
   banners: [
     {
       id: '1',

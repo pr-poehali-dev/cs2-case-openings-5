@@ -73,7 +73,7 @@ export default function Admin() {
     toast({ title: 'Кейс добавлен', description: 'Новый кейс появился на всех страницах' });
   };
 
-  const handleImageUpload = (id: string, type: 'case' | 'item' | 'banner', caseId?: string) => {
+  const handleImageUpload = (id: string, type: 'case' | 'item' | 'banner' | 'currency', caseId?: string) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -91,6 +91,9 @@ export default function Admin() {
           } else if (type === 'banner') {
             updateBanner(id, { image: imageUrl });
             toast({ title: 'Изображение баннера обновлено', description: 'Баннер обновлен на сайте' });
+          } else if (type === 'currency') {
+            setSiteSettings({ currencyIcon: imageUrl });
+            toast({ title: 'Иконка валюты обновлена', description: 'Изменения применены на всем сайте' });
           }
         };
         reader.readAsDataURL(file);
@@ -682,6 +685,39 @@ export default function Admin() {
                   <option value="Roboto">Roboto</option>
                   <option value="Poppins">Poppins</option>
                 </select>
+              </div>
+              <div>
+                <Label>Иконка валюты (вместо ₽)</Label>
+                <div className="mt-2 flex gap-4 items-center">
+                  {siteSettings.currencyIcon && (
+                    <div className="w-12 h-12 border-2 border-border rounded flex items-center justify-center overflow-hidden bg-muted">
+                      <img src={siteSettings.currencyIcon} alt="Валюта" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => handleImageUpload('currency', 'currency')}
+                      variant="outline"
+                    >
+                      <Icon name="Upload" size={16} className="mr-2" />
+                      {siteSettings.currencyIcon ? 'Изменить иконку' : 'Загрузить иконку'}
+                    </Button>
+                    {siteSettings.currencyIcon && (
+                      <Button 
+                        onClick={() => {
+                          setSiteSettings({ currencyIcon: '' });
+                          toast({ title: 'Иконка удалена', description: 'Будет показываться ₽' });
+                        }}
+                        variant="destructive"
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {siteSettings.currencyIcon ? 'Загружена иконка валюты' : 'По умолчанию показывается ₽'}
+                </p>
               </div>
             </div>
           </Card>

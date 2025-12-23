@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useStore, CaseItem } from '@/lib/store';
+import CurrencyIcon from '@/components/CurrencyIcon';
 
 export default function CaseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -91,8 +92,8 @@ export default function CaseDetail() {
                   {caseData.name}
                 </h1>
                 <div className="flex items-center justify-center gap-2 mb-6">
-                  <Icon name="Coins" size={24} className="text-game-orange" />
-                  <span className="text-3xl font-bold text-game-orange">{caseData.price} ₽</span>
+                  <span className="text-3xl font-bold text-game-orange">{caseData.price}</span>
+                  <CurrencyIcon size={24} className="text-game-orange" />
                 </div>
                 <Button
                   onClick={openCase}
@@ -100,7 +101,11 @@ export default function CaseDetail() {
                   className="w-full bg-gradient-to-r from-game-orange to-game-pink hover:from-game-pink hover:to-game-purple"
                   size="lg"
                 >
-                  {isOpening ? 'Открытие...' : `Открыть за ${caseData.price} ₽`}
+                  {isOpening ? 'Открытие...' : (
+                    <span className="flex items-center justify-center gap-2">
+                      Открыть за {caseData.price} <CurrencyIcon size={20} />
+                    </span>
+                  )}
                 </Button>
                 <p className="text-sm text-muted-foreground mt-4">
                   Содержит {caseData.items.length} {caseData.items.length === 1 ? 'предмет' : 'предметов'}
@@ -163,7 +168,8 @@ export default function CaseDetail() {
                   <p className="text-xl text-white/80 mb-4">{getRarityLabel(wonItem.rarity)}</p>
                   <div className="flex items-center justify-center gap-2 mb-6">
                     <Icon name="TrendingUp" size={28} className="text-white" />
-                    <span className="text-3xl font-bold text-white">{wonItem.price} ₽</span>
+                    <span className="text-3xl font-bold text-white">{wonItem.price}</span>
+                    <CurrencyIcon size={28} className="text-white" />
                   </div>
                   <div className="flex gap-4 justify-center">
                     <Button
@@ -216,8 +222,8 @@ export default function CaseDetail() {
                           <h3 className="font-bold text-white text-lg mb-1 truncate">{item.name}</h3>
                           <p className="text-sm text-white/80 mb-2">{getRarityLabel(item.rarity)}</p>
                           <div className="flex items-center gap-1 text-white">
-                            <Icon name="Coins" size={16} />
-                            <span className="font-semibold">{item.price} ₽</span>
+                            <span className="font-semibold">{item.price}</span>
+                            <CurrencyIcon size={16} className="text-white" />
                           </div>
                         </div>
                       </div>
