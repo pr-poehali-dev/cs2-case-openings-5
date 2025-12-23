@@ -170,14 +170,29 @@ export const useStore = create<StoreState>()(
         try {
           set({ isLoading: true });
           const data = await getAllData();
+          
+          const loadedCases = data.cases && data.cases.length > 0 ? data.cases : initialCases;
+          const loadedSettings = data.settings && Object.keys(data.settings).length > 0 
+            ? { ...defaultSiteSettings, ...data.settings } 
+            : defaultSiteSettings;
+          
           set({
-            cases: data.cases || [],
-            siteSettings: { ...defaultSiteSettings, ...data.settings },
+            cases: loadedCases,
+            siteSettings: loadedSettings,
             isLoading: false,
           });
+          
+          if (data.cases && data.cases.length === 0) {
+            await saveCases(initialCases);
+            await saveSettings(defaultSiteSettings);
+          }
         } catch (error) {
           console.error('Failed to load data:', error);
-          set({ isLoading: false });
+          set({ 
+            cases: initialCases,
+            siteSettings: defaultSiteSettings,
+            isLoading: false 
+          });
         }
       },
       syncToServer: async () => {
