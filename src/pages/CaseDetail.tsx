@@ -23,10 +23,19 @@ export default function CaseDetail() {
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const hasRefParam = urlParams.has('ref') || urlParams.has('open');
-    const hasOpenedBefore = localStorage.getItem(`opened_case_${id}`) === 'true';
+    const refParam = urlParams.get('ref');
+    const openParam = urlParams.get('open');
     
-    setCanOpen(hasRefParam || hasOpenedBefore);
+    // Проверяем, открывал ли пользователь этот кейс с этой реферальной ссылкой
+    const storageKey = refParam ? `opened_ref_${refParam}_case_${id}` : `opened_case_${id}`;
+    const hasOpenedBefore = localStorage.getItem(storageKey) === 'true';
+    
+    // Разрешаем открыть только если есть ref/open параметр И еще не открывали с этим параметром
+    if ((refParam || openParam) && !hasOpenedBefore) {
+      setCanOpen(true);
+    } else {
+      setCanOpen(false);
+    }
   }, [caseData, navigate, id]);
 
   if (!caseData) {
@@ -52,7 +61,15 @@ export default function CaseDetail() {
       setWonItem(randomItem);
       setIsOpening(false);
       
-      localStorage.setItem(`opened_case_${id}`, 'true');
+      // Сохраняем, что пользователь открыл кейс с этой реферальной ссылкой
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref');
+      const storageKey = refParam ? `opened_ref_${refParam}_case_${id}` : `opened_case_${id}`;
+      localStorage.setItem(storageKey, 'true');
+      
+      // Блокируем повторное открытие
+      setCanOpen(false);
+      
       await recordCaseOpening(caseData.id, randomItem.id);
     }, 3000);
   };

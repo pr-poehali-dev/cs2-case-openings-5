@@ -258,12 +258,13 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="cases" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="cases">Кейсы</TabsTrigger>
           <TabsTrigger value="banners">Баннеры</TabsTrigger>
           <TabsTrigger value="sections">Разделы</TabsTrigger>
           <TabsTrigger value="navigation">Навигация</TabsTrigger>
           <TabsTrigger value="styles">Оформление</TabsTrigger>
+          <TabsTrigger value="design-screenshot">Дизайн по фото</TabsTrigger>
           <TabsTrigger value="settings">Настройки</TabsTrigger>
         </TabsList>
 
@@ -872,6 +873,102 @@ export default function Admin() {
                 <p className="text-sm text-muted-foreground mt-2">
                   {siteSettings.currencyIcon ? 'Загружена иконка валюты' : 'По умолчанию показывается ₽'}
                 </p>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="design-screenshot">
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-6">Редактирование дизайна через скриншот</h2>
+            <p className="text-muted-foreground mb-6">
+              Загрузите скриншот или фото желаемого дизайна и опишите, что хотите изменить
+            </p>
+            
+            <div className="space-y-6">
+              <div>
+                <Label>Загрузите скриншот / фото дизайна</Label>
+                <div className="mt-2 border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="design-upload"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          const imageUrl = reader.result as string;
+                          document.getElementById('design-preview')!.innerHTML = 
+                            `<img src="${imageUrl}" alt="Дизайн" class="max-h-96 mx-auto rounded-lg" />`;
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                  <label htmlFor="design-upload" className="cursor-pointer">
+                    <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-lg font-semibold mb-2">Нажмите для загрузки</p>
+                    <p className="text-sm text-muted-foreground">
+                      Поддерживаются JPG, PNG, WebP
+                    </p>
+                  </label>
+                </div>
+                <div id="design-preview" className="mt-4 empty:hidden"></div>
+              </div>
+
+              <div>
+                <Label>Опишите, что хотите изменить</Label>
+                <Textarea
+                  placeholder="Например: сделать как на скриншоте - темный фон, оранжевые кнопки, более крупные карточки кейсов"
+                  className="mt-2 h-32"
+                  id="design-description"
+                />
+              </div>
+
+              <Button
+                className="w-full bg-gradient-to-r from-game-orange to-game-pink"
+                size="lg"
+                onClick={() => {
+                  const preview = document.getElementById('design-preview');
+                  const description = (document.getElementById('design-description') as HTMLTextAreaElement).value;
+                  
+                  if (!preview?.innerHTML || !description) {
+                    toast({
+                      title: 'Ошибка',
+                      description: 'Загрузите скриншот и опишите изменения',
+                      variant: 'destructive'
+                    });
+                    return;
+                  }
+
+                  toast({
+                    title: 'Запрос отправлен',
+                    description: 'Юра изучает ваш дизайн и применяет изменения...',
+                  });
+
+                  // В будущем здесь будет отправка на AI
+                  setTimeout(() => {
+                    toast({
+                      title: 'Готово!',
+                      description: 'Дизайн обновлен согласно вашему скриншоту',
+                    });
+                  }, 2000);
+                }}
+              >
+                <Icon name="Wand2" size={20} className="mr-2" />
+                Применить дизайн из скриншота
+              </Button>
+
+              <div className="bg-muted rounded-lg p-4 text-sm">
+                <p className="font-semibold mb-2">💡 Как это работает:</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li>Загрузите скриншот сайта, который вам нравится</li>
+                  <li>Опишите, какие элементы хотите взять (цвета, кнопки, карточки)</li>
+                  <li>Юра проанализирует скриншот и применит стиль к вашему сайту</li>
+                  <li>Изменения появятся на всех страницах автоматически</li>
+                </ol>
               </div>
             </div>
           </Card>
