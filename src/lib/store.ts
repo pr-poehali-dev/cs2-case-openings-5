@@ -114,48 +114,50 @@ const initialCases: CaseData[] = [
   },
 ];
 
+const defaultSiteSettings: SiteSettings = {
+  title: 'CS2 КЕЙСЫ',
+  logo: '🎮',
+  font: 'Rubik',
+  banners: [
+    {
+      id: '1',
+      title: 'Добро пожаловать!',
+      description: 'Открывай кейсы и получай легендарные скины CS2',
+      image: '',
+      isActive: true,
+    },
+  ],
+  sections: [
+    {
+      id: '1',
+      title: 'Топ кейсы',
+      content: 'Самые популярные кейсы с лучшими скинами',
+      isVisible: true,
+      order: 1,
+    },
+    {
+      id: '2',
+      title: 'Новинки',
+      content: 'Свежие кейсы с новыми скинами',
+      isVisible: true,
+      order: 2,
+    },
+  ],
+  styles: {
+    primaryColor: '#ff6b35',
+    secondaryColor: '#f72585',
+    accentColor: '#7209b7',
+    backgroundColor: '#0a0a0a',
+    cardColor: '#1a1a1a',
+    borderRadius: '12px',
+  },
+};
+
 export const useStore = create<StoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       cases: initialCases,
-      siteSettings: {
-        title: 'CS2 КЕЙСЫ',
-        logo: '🎮',
-        font: 'Rubik',
-        banners: [
-          {
-            id: '1',
-            title: 'Добро пожаловать!',
-            description: 'Открывай кейсы и получай легендарные скины CS2',
-            image: '',
-            isActive: true,
-          },
-        ],
-        sections: [
-          {
-            id: '1',
-            title: 'Топ кейсы',
-            content: 'Самые популярные кейсы с лучшими скинами',
-            isVisible: true,
-            order: 1,
-          },
-          {
-            id: '2',
-            title: 'Новинки',
-            content: 'Свежие кейсы с новыми скинами',
-            isVisible: true,
-            order: 2,
-          },
-        ],
-        styles: {
-          primaryColor: '#ff6b35',
-          secondaryColor: '#f72585',
-          accentColor: '#7209b7',
-          backgroundColor: '#0a0a0a',
-          cardColor: '#1a1a1a',
-          borderRadius: '12px',
-        },
-      },
+      siteSettings: defaultSiteSettings,
       setCases: (cases) => set({ cases }),
       addCase: (caseData) =>
         set((state) => ({
@@ -199,65 +201,123 @@ export const useStore = create<StoreState>()(
           ),
         })),
       setSiteSettings: (settings) =>
-        set((state) => ({
-          siteSettings: { ...state.siteSettings, ...settings },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: { 
+              ...defaultSiteSettings, 
+              ...currentSettings, 
+              ...settings,
+              banners: currentSettings.banners || defaultSiteSettings.banners,
+              sections: currentSettings.sections || defaultSiteSettings.sections,
+              styles: currentSettings.styles || defaultSiteSettings.styles,
+            },
+          };
+        }),
       addBanner: (banner) =>
-        set((state) => ({
-          siteSettings: {
-            ...state.siteSettings,
-            banners: [...state.siteSettings.banners, banner],
-          },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              banners: [...(currentSettings.banners || []), banner],
+            },
+          };
+        }),
       updateBanner: (id, updates) =>
-        set((state) => ({
-          siteSettings: {
-            ...state.siteSettings,
-            banners: state.siteSettings.banners.map((b) =>
-              b.id === id ? { ...b, ...updates } : b
-            ),
-          },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              banners: (currentSettings.banners || []).map((b) =>
+                b.id === id ? { ...b, ...updates } : b
+              ),
+            },
+          };
+        }),
       deleteBanner: (id) =>
-        set((state) => ({
-          siteSettings: {
-            ...state.siteSettings,
-            banners: state.siteSettings.banners.filter((b) => b.id !== id),
-          },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              banners: (currentSettings.banners || []).filter((b) => b.id !== id),
+            },
+          };
+        }),
       addSection: (section) =>
-        set((state) => ({
-          siteSettings: {
-            ...state.siteSettings,
-            sections: [...state.siteSettings.sections, section],
-          },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              sections: [...(currentSettings.sections || []), section],
+            },
+          };
+        }),
       updateSection: (id, updates) =>
-        set((state) => ({
-          siteSettings: {
-            ...state.siteSettings,
-            sections: state.siteSettings.sections.map((s) =>
-              s.id === id ? { ...s, ...updates } : s
-            ),
-          },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              sections: (currentSettings.sections || []).map((s) =>
+                s.id === id ? { ...s, ...updates } : s
+              ),
+            },
+          };
+        }),
       deleteSection: (id) =>
-        set((state) => ({
-          siteSettings: {
-            ...state.siteSettings,
-            sections: state.siteSettings.sections.filter((s) => s.id !== id),
-          },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              sections: (currentSettings.sections || []).filter((s) => s.id !== id),
+            },
+          };
+        }),
       updateStyles: (styles) =>
-        set((state) => ({
-          siteSettings: {
-            ...state.siteSettings,
-            styles: { ...state.siteSettings.styles, ...styles },
-          },
-        })),
+        set((state) => {
+          const currentSettings = state.siteSettings || defaultSiteSettings;
+          return {
+            siteSettings: {
+              ...defaultSiteSettings,
+              ...currentSettings,
+              styles: { ...(currentSettings.styles || defaultSiteSettings.styles), ...styles },
+            },
+          };
+        }),
     }),
     {
       name: 'cs2-cases-storage',
+      version: 1,
+      migrate: (persistedState: any) => {
+        if (!persistedState.siteSettings) {
+          return {
+            ...persistedState,
+            siteSettings: defaultSiteSettings,
+          };
+        }
+        
+        return {
+          ...persistedState,
+          siteSettings: {
+            ...defaultSiteSettings,
+            ...persistedState.siteSettings,
+            banners: persistedState.siteSettings.banners || defaultSiteSettings.banners,
+            sections: persistedState.siteSettings.sections || defaultSiteSettings.sections,
+            styles: persistedState.siteSettings.styles || defaultSiteSettings.styles,
+          },
+        };
+      },
     }
   )
 );

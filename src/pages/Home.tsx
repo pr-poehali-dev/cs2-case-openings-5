@@ -44,7 +44,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background" style={{ fontFamily: siteSettings.font }}>
       <div className="container mx-auto px-4 py-8">
-        {siteSettings.banners.filter(b => b.isActive).map((banner) => (
+        {siteSettings.banners?.filter(b => b.isActive).map((banner) => (
           <Card key={banner.id} className="mb-8 overflow-hidden border-2 border-primary">
             <div className="relative">
               {banner.image && (
@@ -74,7 +74,7 @@ export default function Home() {
           <p className="text-xl text-muted-foreground">Открывай кейсы и выигрывай легендарные скины!</p>
         </div>
 
-        {siteSettings.sections.filter(s => s.isVisible).sort((a, b) => a.order - b.order).map((section) => (
+        {siteSettings.sections?.filter(s => s.isVisible).sort((a, b) => a.order - b.order).map((section) => (
           <div key={section.id} className="mb-8">
             <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-game-purple to-game-pink bg-clip-text text-transparent">
               {section.title}
