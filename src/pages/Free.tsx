@@ -85,38 +85,12 @@ export default function Free() {
       {freeSections.length > 0 && (
         <div className="space-y-8">
           {freeSections.map((section) => (
-            <div key={section.id}>
+            <Card key={section.id} className="p-6">
               <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {section.items.map((item) => (
-                  <Card
-                    key={item.id}
-                    className="p-4 hover:scale-105 transition-transform cursor-pointer"
-                  >
-                    <div className="text-6xl mb-2 text-center">
-                      {item.image.startsWith('data:') ? (
-                        <img
-                          src={item.image}
-                          alt={item.label}
-                          className="w-full h-32 object-cover rounded"
-                        />
-                      ) : (
-                        <span>{item.image}</span>
-                      )}
-                    </div>
-                    <p className="text-center font-semibold">{item.label}</p>
-                    {item.link && (
-                      <Button
-                        className="w-full mt-2 bg-gradient-to-r from-game-orange to-game-pink"
-                        size="sm"
-                      >
-                        Получить
-                      </Button>
-                    )}
-                  </Card>
-                ))}
+              <div className="prose prose-invert max-w-none">
+                <p className="text-muted-foreground">{section.content}</p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
