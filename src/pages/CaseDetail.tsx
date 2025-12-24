@@ -34,16 +34,7 @@ export default function CaseDetail() {
       const refParam = urlParams.get('ref');
       const openParam = urlParams.get('open');
       
-      // Проверяем глобальную блокировку на этот кейс
-      const globalKey = `opened_case_${id}_locked`;
-      const isGloballyLocked = localStorage.getItem(globalKey) === 'true';
-      
-      if (isGloballyLocked) {
-        setCanOpen(false);
-        return;
-      }
-      
-      // Проверяем, открывал ли пользователь этот кейс с этой реферальной ссылкой
+      // Проверяем, открывал ли пользователь этот кейс с ЭТОЙ КОНКРЕТНОЙ промо-ссылкой
       const storageKey = refParam ? `opened_ref_${refParam}_case_${id}` : `opened_case_${id}`;
       const hasOpenedBefore = localStorage.getItem(storageKey) === 'true';
       
@@ -85,17 +76,13 @@ export default function CaseDetail() {
       setWonItem(randomItem);
       setIsOpening(false);
       
-      // Сохраняем, что пользователь открыл кейс с этой реферальной ссылкой
+      // Сохраняем, что пользователь открыл кейс с ЭТОЙ КОНКРЕТНОЙ промо-ссылкой
       const urlParams = new URLSearchParams(window.location.search);
       const refParam = urlParams.get('ref');
       const storageKey = refParam ? `opened_ref_${refParam}_case_${id}` : `opened_case_${id}`;
       localStorage.setItem(storageKey, 'true');
       
-      // ГЛОБАЛЬНАЯ блокировка - больше нельзя открывать этот кейс НИКОГДА
-      const globalKey = `opened_case_${id}_locked`;
-      localStorage.setItem(globalKey, 'true');
-      
-      // Блокируем повторное открытие
+      // Блокируем повторное открытие по этой же ссылке
       setCanOpen(false);
       
       await recordCaseOpening(caseData.id, randomItem.id);
