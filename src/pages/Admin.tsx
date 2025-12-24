@@ -363,11 +363,6 @@ export default function Admin() {
                       Копировать
                     </Button>
                   </div>
-                  {caseItem.promoRef && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Ссылка: {window.location.origin}/?ref={caseItem.promoRef}
-                    </p>
-                  )}
                 </div>
               </div>
 
