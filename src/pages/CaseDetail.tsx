@@ -156,9 +156,6 @@ export default function CaseDetail() {
                     <p className="text-sm text-muted-foreground mt-4">
                       Для открытия кейса перейдите по специальной ссылке
                     </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Пример: /cases/{id}?ref=promo или /cases/{id}?open=true
-                    </p>
                   </div>
                 ) : (
                   <div>
