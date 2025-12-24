@@ -193,17 +193,67 @@ export const useStore = create<StoreState>()(
       siteSettings: defaultSiteSettings,
       isLoading: false,
       loadData: async () => {
-        // Пропускаем загрузку - используем только локальные данные
-        set({ isLoading: false });
+        try {
+          set({ isLoading: true });
+          const data = await getAllData();
+          
+          const dbIsEmpty = (!data.cases || data.cases.length === 0) && 
+                           (!data.settings || Object.keys(data.settings).length === 0);
+          
+          if (dbIsEmpty) {
+            await saveCases(initialCases);
+            await saveSettings(defaultSiteSettings);
+            set({
+              cases: initialCases,
+              siteSettings: defaultSiteSettings,
+              isLoading: false,
+            });
+          } else {
+            const loadedCases = data.cases || get().cases || initialCases;
+            const loadedSettings = data.settings && Object.keys(data.settings).length > 0 
+              ? { ...defaultSiteSettings, ...data.settings } 
+              : get().siteSettings || defaultSiteSettings;
+            
+            set({
+              cases: loadedCases,
+              siteSettings: loadedSettings,
+              isLoading: false,
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load data:', error);
+          set({ 
+            isLoading: false 
+          });
+        }
       },
       syncToServer: async () => {
-        // Отключено для экономии вызовов API
+        try {
+          const state = get();
+          await saveCases(state.cases);
+          await saveSettings(state.siteSettings);
+        } catch (error) {
+          console.error('Failed to sync to server:', error);
+        }
       },
       recordCaseOpening: async (caseId: string, itemId: string) => {
-        // Отключено для экономии вызовов API
+        try {
+          await recordOpening(caseId, itemId);
+        } catch (error) {
+          console.error('Failed to record opening:', error);
+        }
       },
       loadCaseItems: async (caseId: string) => {
-        // Отключено для экономии вызовов API - используем локальные данные
+        try {
+          const items = await getCaseItems(caseId);
+          set((state) => ({
+            cases: state.cases.map((c) =>
+              c.id === caseId ? { ...c, items } : c
+            ),
+          }));
+        } catch (error) {
+          console.error('Failed to load case items:', error);
+        }
       },
       setCases: (cases) => set({ cases }),
       addCase: (caseData) => {

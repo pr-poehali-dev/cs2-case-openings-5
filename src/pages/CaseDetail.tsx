@@ -16,7 +16,12 @@ export default function CaseDetail() {
 
   const caseData = cases.find((c) => c.id === id);
 
-  // Отключено для экономии вызовов API
+  // Загружаем items если они пустые
+  useEffect(() => {
+    if (caseData && caseData.items.length === 0) {
+      loadCaseItems(caseData.id);
+    }
+  }, [caseData, loadCaseItems]);
 
   useEffect(() => {
     if (!caseData) {
