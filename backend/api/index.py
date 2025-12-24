@@ -87,8 +87,13 @@ def get_all_data(conn) -> Dict[str, Any]:
                 settings[key] = json.loads(settings[key])
         
         # Загружаем только базовую информацию о кейсах
-        cur.execute('SELECT id, name, image, price, created_at, updated_at FROM cases ORDER BY created_at DESC')
+        cur.execute('SELECT id, name, image, price, promo_ref, created_at, updated_at FROM cases ORDER BY created_at DESC')
         cases = cur.fetchall()
+        
+        # Переименовываем поле promo_ref в promoRef для JS
+        for case in cases:
+            if 'promo_ref' in case:
+                case['promoRef'] = case.pop('promo_ref')
         
         # Добавляем пустой массив items (будут загружаться отдельно)
         for case in cases:
@@ -111,14 +116,16 @@ def save_cases(conn, body: Dict[str, Any]) -> Dict[str, Any]:
             name = escape_sql_string(case['name'])
             image = escape_sql_string(case['image'])
             price = str(case['price'])
+            promo_ref = escape_sql_string(case.get('promoRef'))
             
             cur.execute(f'''
-                INSERT INTO cases (id, name, image, price, updated_at)
-                VALUES ({case_id}, {name}, {image}, {price}, CURRENT_TIMESTAMP)
+                INSERT INTO cases (id, name, image, price, promo_ref, updated_at)
+                VALUES ({case_id}, {name}, {image}, {price}, {promo_ref}, CURRENT_TIMESTAMP)
                 ON CONFLICT (id) DO UPDATE SET
                     name = EXCLUDED.name,
                     image = EXCLUDED.image,
                     price = EXCLUDED.price,
+                    promo_ref = EXCLUDED.promo_ref,
                     updated_at = CURRENT_TIMESTAMP
             ''')
             

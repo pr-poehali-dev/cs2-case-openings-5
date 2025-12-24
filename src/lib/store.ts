@@ -16,6 +16,7 @@ export interface CaseData {
   image: string;
   price: number;
   items: CaseItem[];
+  promoRef?: string;
 }
 
 export interface Banner {

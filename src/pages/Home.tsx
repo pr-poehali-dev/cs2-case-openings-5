@@ -1,11 +1,24 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/lib/store';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import CurrencyIcon from '@/components/CurrencyIcon';
+import { useEffect } from 'react';
 
 export default function Home() {
   const { cases, siteSettings } = useStore();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      const targetCase = cases.find(c => c.promoRef === ref);
+      if (targetCase) {
+        navigate(`/cases/${targetCase.id}`);
+      }
+    }
+  }, [searchParams, cases, navigate]);
 
   return (
     <div className="min-h-screen bg-background" style={{ fontFamily: siteSettings.font }}>

@@ -60,6 +60,16 @@ export default function Admin() {
     toast({ title: 'Кейс обновлен', description: 'Изменения сохранены на всех страницах' });
   };
 
+  const handleCopyPromoLink = (promoRef: string) => {
+    const url = `${window.location.origin}/?ref=${promoRef}`;
+    navigator.clipboard.writeText(url);
+    toast({ 
+      title: 'Ссылка скопирована', 
+      description: `${url}`,
+      duration: 3000
+    });
+  };
+
   const handleDeleteCase = (id: string) => {
     deleteCase(id);
     toast({ title: 'Кейс удален', description: 'Кейс удален со всех страниц' });
@@ -332,6 +342,32 @@ export default function Admin() {
                       className="mt-2"
                     />
                   </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-border">
+                  <Label className="text-sm font-semibold mb-2 block">Промо-ссылка для открытия кейса</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={caseItem.promoRef || ''}
+                      onChange={(e) => handleUpdateCase(caseItem.id, 'promoRef', e.target.value)}
+                      placeholder="например: osd-case или branding-pack"
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={() => handleCopyPromoLink(caseItem.promoRef || caseItem.id)}
+                      variant="outline"
+                      size="sm"
+                      disabled={!caseItem.promoRef}
+                    >
+                      <Icon name="Copy" size={16} className="mr-2" />
+                      Копировать
+                    </Button>
+                  </div>
+                  {caseItem.promoRef && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Ссылка: {window.location.origin}/?ref={caseItem.promoRef}
+                    </p>
+                  )}
                 </div>
               </div>
 
