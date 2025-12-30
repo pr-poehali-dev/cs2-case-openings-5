@@ -76,7 +76,7 @@ interface StoreState {
   setCases: (cases: CaseData[]) => void;
   addCase: (caseData: CaseData) => void;
   updateCase: (id: string, updates: Partial<CaseData>) => void;
-  deleteCase: (id: string) => void;
+  deleteCase: (id: string) => Promise<void>;
   addItemToCase: (caseId: string, item: CaseItem) => void;
   updateCaseItem: (caseId: string, itemId: string, updates: Partial<CaseItem>) => void;
   deleteCaseItem: (caseId: string, itemId: string) => void;
@@ -270,11 +270,11 @@ export const useStore = create<StoreState>()(
         }));
         get().syncToServer();
       },
-      deleteCase: (id) => {
+      deleteCase: async (id) => {
         set((state) => ({
           cases: state.cases.filter((c) => c.id !== id),
         }));
-        get().syncToServer();
+        await get().syncToServer();
       },
       addItemToCase: (caseId, item) => {
         set((state) => ({

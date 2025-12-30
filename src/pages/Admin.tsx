@@ -70,9 +70,9 @@ export default function Admin() {
     });
   };
 
-  const handleDeleteCase = (id: string) => {
-    deleteCase(id);
-    toast({ title: 'Кейс удален', description: 'Кейс удален со всех страниц' });
+  const handleDeleteCase = async (id: string) => {
+    await deleteCase(id);
+    toast({ title: 'Кейс удален', description: 'Кейс удален со всех страниц и сохранен в базе' });
   };
 
   const handleAddCase = () => {
